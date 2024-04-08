@@ -1,17 +1,6 @@
 <?php   										// Opening PHP tag
-	
 	// Include the database connection script
 	require 'includes/database-connection.php';
-
-
-	/*
-	 * TO-DO: Define a function that retrives ALL customer and order info from the database based on values entered into form.
-	 		  - Write SQL query to retrieve ALL customer and order info based on form values
-	 		  - Execute the SQL query using the pdo function and fetch the result
-	 		  - Return the order info
-	 */
-
-	
 	// Check if the request method is POST (i.e, form submitted)
 	if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		
@@ -21,10 +10,33 @@
 		// Retrieve the value of the 'orderNum' field from the POST data
 		$orderNum = $_POST['orderNum'];
 
+		function get_order(PDO $pdo, string $email, string $orderNum) {
+			// SQL query to retrieve order information based on the email and order number
+			$sql = "SELECT o.*, c.*
+					FROM orders o
+					JOIN customer c ON o.custnum = c.custnum
+					WHERE c.email = :email AND o.orderNum = :orderNum";
+			
+			// Prepare the SQL query
+			$stmt = $pdo->prepare($sql);
+			
+			// Bind the values to the placeholders
+			$stmt->bindParam(':email', $email);
+			$stmt->bindParam(':orderNum', $orderNum);
+			
+			// Execute the SQL query
+			$stmt->execute();
+			
+			// Fetch the result as an associative array
+			$order = $stmt->fetch(PDO::FETCH_ASSOC);
+			
+			// Return the order information (associative array)
+			return $order;
+		}
 
-		/*
-		 * TO-DO: Retrieve info about order from the db using provided PDO connection
-		 */
+		$order = get_order($pdo, $email, $orderNum);
+
+
 		
 	}
 // Closing PHP tag  ?> 
@@ -88,21 +100,18 @@
 				<!-- 
 				  -- TO-DO: Check if variable holding order is not empty. Make sure to replace null with your variable!
 				  -->
-				
-				<?php if (!empty(null)): ?>
-					<div class="order-details">
 
-						<!-- 
-				  		  -- TO DO: Fill in ALL the placeholders for this order from the db
-  						  -->
+				
+				
+				<?php if (!empty($order)): ?>
+					<div class="order-details">
 						<h1>Order Details</h1>
-						<p><strong>Name: </strong> <?= '' ?></p>
-				        	<p><strong>Username: </strong> <?= '' ?></p>
-				        	<p><strong>Order Number: </strong> <?= '' ?></p>
-				        	<p><strong>Quantity: </strong> <?= '' ?></p>
-				        	<p><strong>Date Ordered: </strong> <?= '' ?></p>
-				        	<p><strong>Delivery Date: </strong> <?= '' ?></p>
-				      
+						<p><strong>Name: </strong> <?= $order['cname'] ?></p>
+						<p><strong>Username: </strong> <?= $order['username']  ?></p>
+						<p><strong>Order Number: </strong> <?= $order['ordernum'] ?></p>
+						<p><strong>Quantity: </strong> <?= $order['quantity']  ?></p>
+						<p><strong>Date Ordered: </strong> <?= $order['date_ordered']  ?></p>
+						<p><strong>Delivery Date: </strong> <?= $order['date_deliv']  ?></p>
 					</div>
 				<?php endif; ?>
 
